@@ -7,4 +7,4 @@ a toy jvm in awk, based on this tutorial: https://zserge.com/posts/jvm/
   - example (see run.sh): `javac Add.java && hexdump -v -e '/1 "%01u "' Add.class  | awk -f jvm.awk`
   
 # what can it do?
-- not a lot (add two numbers that are hard-coded)
+- not a lot (eg. call methods and basic operations, see Add.java)
