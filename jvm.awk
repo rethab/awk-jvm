@@ -62,6 +62,18 @@ function read_cp_string(idx) {
   else bail("Unhandled tag in read_cp_string (" idx ") " CP[idx]["tag"])
 }
 
+function read_cp_descriptor(idx) {
+  if      (CP[idx]["tag"] ==  1) return CP[idx]["string"];
+  else if (CP[idx]["tag"] == 10) return read_cp_descriptor(CP[idx]["name_and_type_index"]);
+  else if (CP[idx]["tag"] == 12) return read_cp_descriptor(CP[idx]["descriptor_index"]);
+  else bail("Unhandled tag in read_cp_string (" idx ") " CP[idx]["tag"])
+}
+
+function argc(idx,    cp_desc) {
+  cp_desc = read_cp_descriptor(idx);
+  return length(cp_desc) - 2 - (length(cp_desc) - index(cp_desc, ")"));
+}
+
 function read_interfaces(    count, i) {
   count = read_u2();
   for(i = 0; i < count; i++) {
@@ -128,7 +140,7 @@ function read_i4(    x) {
   }
 }
 
-function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals) {
+function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals, _argc) {
   for (m in METHODS) {
     if (METHODS[m]["name"] == name) {
       for (a in METHODS[m]["attributes"]) {
@@ -144,7 +156,7 @@ function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals)
           for (d = 8; d < frame["codelength"] + 8; d++) {
             frame["code"][d-8] = METHODS[m]["attributes"][a]["data"][d];
           }
-          for (d in locals) {
+          for (d = 0; d < frame["maxlocals"]; d++) {
             frame["locals"][d] = locals[d];
           }
           break;
@@ -212,10 +224,10 @@ function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals)
       indexbyte2 = strtonum(frame["code"][++c]);
       _ix = or(lshift(indexbyte1, 8), indexbyte2);
       _mname = read_cp_string(_ix);
+      _argc = argc(_ix);
       _ix = 0;
-      while (sp > 0) {
+      while (_ix < _argc) {
         newlocals[_ix++] = stack[--sp];
-        print "newlocals " newlocals[_ix-1]
       }
       _res = run_frame(_mname, newlocals);
       stack[sp++] = _res;
