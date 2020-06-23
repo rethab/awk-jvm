@@ -1,7 +1,7 @@
 public class Add {
 
   public static int main() {
-    return add(1, add(10, 10));
+    return add(1, minus(10, 5));
   }
 
   public static int minus(int a, int b) {
