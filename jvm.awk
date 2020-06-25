@@ -10,10 +10,10 @@ function ensure(b, ex, offset) {
 }
 
 function read_magic() {
-  ensure(DATA[IX], "0xCA", IX); IX++;
-  ensure(DATA[IX], "0xFE", IX); IX++;
-  ensure(DATA[IX], "0xBA", IX); IX++;
-  ensure(DATA[IX], "0xBE", IX); IX++;
+  x = strtonum($IX); ensure(x, "0xCA", IX); IX++;
+  x = strtonum($IX); ensure(x, "0xFE", IX); IX++;
+  x = strtonum($IX); ensure(x, "0xBA", IX); IX++;
+  x = strtonum($IX); ensure(x, "0xBE", IX); IX++;
 }
 
 function read_const_pool(    count, i, tag, len, str, y) {
@@ -26,7 +26,7 @@ function read_const_pool(    count, i, tag, len, str, y) {
       len = read_u2();
       str = "";
       for (y = 0; y < len; y++) {
-        str = str sprintf("%c", DATA[(y+IX)]);
+        str = str sprintf("%c", $(y+IX));
       }
       IX += len;
       CP[i]["string"] = str;
@@ -114,13 +114,13 @@ function read_methods(    i, count, y, j) {
 }
 
 function read_u1(    x) {
-  x = DATA[IX];IX++;
+  x = strtonum($IX); IX++;
   return x;
 }
 
 function read_u2(    high, low) {
-  high = DATA[IX]; IX++;
-  low  = DATA[IX]; IX++;
+  high = strtonum($IX); IX++;
+  low  = strtonum($IX); IX++;
   return or(lshift(high, 8), low);
 }
 
@@ -273,27 +273,9 @@ function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals,
   }
 }
 
+{
+  IX = 1;
 
-function _ord_init(    i, t) {
-    for (i = 0; i <= 255; i++) {
-        t = sprintf("%c", i)
-        _ord_[t] = i
-    }
-}
-function ord(c) {
-    return _ord_[c]
-}
-
-BEGIN {
-  _ord_init()
-  RS=".{1}"
-  IDX = 1;
-  while (getline > 0) {
-    $0=RT
-    DATA[IDX]=ord($0)+0; # +0 forces numeric type
-    IDX++
-  }
-  IX=1
   read_magic()
   minor = read_u2();
   major = read_u2();
@@ -305,5 +287,6 @@ BEGIN {
   read_fields();
   read_methods();
   read_attributes(atts);
+
   print run_frame("main", locals);
 }
