@@ -7,4 +7,4 @@ then
   exit 1
 fi
 
-javac "$file.java" && hexdump -v -e '/1 "%01u "' "$file.class"  | awk -f jvm.awk
+javac "$file.java" && cat "$file.class" | gawk -bf jvm.awk
