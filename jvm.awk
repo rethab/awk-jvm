@@ -140,6 +140,41 @@ function read_i4(    x) {
   }
 }
 
+#
+# tries to polyfill typeof() if it doesn't
+# exist. The typeof function was introduced
+# in gawk 4.2
+#
+# Note that this is an imcomplete replacement
+#
+function xtypeof(x) {
+  if ("typeof" in FUNCTAB) {
+    return typeof(x)
+  }
+  if (isarray(x)) {
+    return "array"
+  }
+  if (x == "" && x == 0) {
+    return "untyped"
+  }
+  if (is_number(x)) {
+    return "number"
+  }
+  if (is_string(x)) {
+    return "string"
+  }
+  return "unassigned"
+}
+
+function is_number(x) {
+  return x+0 == x
+}
+
+function is_string(x) {
+  return ! is_number(x)
+}
+
+
 function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals, _argc) {
   for (m in METHODS) {
     if (METHODS[m]["name"] == name) {
@@ -165,7 +200,7 @@ function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals,
     }
   }
 
-  if (typeof(frame["code"]) != "array") {
+  if (xtypeof(frame["code"]) != "array") {
     bail("Method " name " not found?");
   }
 
