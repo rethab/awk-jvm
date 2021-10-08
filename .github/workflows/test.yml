@@ -13,7 +13,10 @@ jobs:
       - id: run_add
         run: echo "::set-output name=result::$(./run.sh Add)"
       - if: matrix.os == 'windows-latest'
-        run: ./run.sh Add
+        run: |
+          javac Add.java
+          hexdump -v -e '/1 "%01u "' Add.class
+          hexdump -v -e '/1 "%01u "' Add.class  | awk -f jvm.awk
       - if: steps.run_add.outputs.result != 6
         run: |
           echo "Output was ${{ steps.run_add.outputs.result }}"
