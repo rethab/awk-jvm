@@ -10,10 +10,8 @@ function ensure(b, ex, offset) {
 }
 
 function read_magic() {
-  x = strtonum($IX); ensure(x, "0xCA", IX); IX++;
-  x = strtonum($IX); ensure(x, "0xFE", IX); IX++;
-  x = strtonum($IX); ensure(x, "0xBA", IX); IX++;
-  x = strtonum($IX); ensure(x, "0xBE", IX); IX++;
+  x = read_u4();
+  ensure(x, "0xcafebabe", IX-4);
 }
 
 function read_const_pool(    count, i, tag, len, str, y) {
@@ -26,7 +24,7 @@ function read_const_pool(    count, i, tag, len, str, y) {
       len = read_u2();
       str = "";
       for (y = 0; y < len; y++) {
-        str = str sprintf("%c", $(y+IX));
+        str = str sprintf("%c", mem[y+IX]);
       }
       IX += len;
       CP[i]["string"] = str;
@@ -114,13 +112,13 @@ function read_methods(    i, count, y, j) {
 }
 
 function read_u1(    x) {
-  x = strtonum($IX); IX++;
+  x = mem[IX++];
   return x;
 }
 
 function read_u2(    high, low) {
-  high = strtonum($IX); IX++;
-  low  = strtonum($IX); IX++;
+  high = mem[IX++];
+  low  = mem[IX++];
   return or(lshift(high, 8), low);
 }
 
@@ -273,10 +271,25 @@ function run_frame(name, locals,    m, a, d, c, frame, op, stack, sp, newlocals,
   }
 }
 
-{
-  IX = 1;
+function asc(c) {
+  return asctable[c];
+}
 
-  read_magic()
+BEGIN {
+  for(i=0; i<256; i++) { asctable[sprintf("%c", i)] = i }
+}
+
+# MAIN
+{
+  nbyte = split($0""RT,a,"");
+  for(i = 1; i <= nbyte; i++) { # place file content into mem[]
+    mem[k++]=asc(a[i]);
+  }
+}
+
+END {
+  IX=0;
+  read_magic();
   minor = read_u2();
   major = read_u2();
   read_const_pool();

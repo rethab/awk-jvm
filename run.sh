@@ -1,10 +1,10 @@
 #!/bin/bash
 
 file=$1
-if [[ ! -f "$file.java" ]];
+if [[ ! -f "${file}.java" ]];
 then
-  echo "$file.java is not a file"
+  echo "${file}.java not found"
   exit 1
 fi
 
-javac "$file.java" && hexdump -v -e '/1 "%01u "' "$file.class"  | awk -f jvm.awk
+javac "${file}.java" && gawk -bf jvm.awk "${file}.class"
