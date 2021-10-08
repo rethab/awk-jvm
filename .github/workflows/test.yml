@@ -2,6 +2,12 @@ on: push
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest', 'windows-latest']
+    runs-on: ${{ matrix.os }}
     steps:
+      - run: brew install gawk
+        if: ${{ runner.os }} == "macos"
       - run: awk --version
+      - run: echo ${{ runner.os }}
