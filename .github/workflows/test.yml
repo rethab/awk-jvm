@@ -1,0 +1,18 @@
+on: push
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - if: matrix.os == 'macos-latest'
+        run: brew install gawk
+      - uses: actions/checkout@v2
+      - id: run_add
+        run: echo "::set-output name=result::$(./run.sh Add)"
+      - if: steps.run_add.outputs.result != 6
+        run: |
+          echo "Output was ${{ steps.run_add.outputs.result }}"
+          exit 1
